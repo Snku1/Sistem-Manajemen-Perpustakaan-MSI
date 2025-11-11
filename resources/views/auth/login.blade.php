@@ -11,15 +11,15 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     :root {
-      --primary-color: #4e73df;
-      --secondary-color: #6f42c1;
+      --primary-color: #191970;
+      --secondary-color: #191970;
       --accent-color: #36b9cc;
       --light-bg: #f8f9fc;
     }
 
     body {
       font-family: 'Nunito', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #ADD8E6 0%, #191970 100%);
       height: 100vh;
       display: flex;
       align-items: center;
