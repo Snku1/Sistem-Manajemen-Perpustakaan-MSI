@@ -13,7 +13,7 @@
 
   <style>
     :root {
-      --primary-color: #191979;
+      --primary-color: #191970;
       --secondary-color: #191970;
       --accent-color: #36b9cc;
       --danger-color: #e74a3b;
