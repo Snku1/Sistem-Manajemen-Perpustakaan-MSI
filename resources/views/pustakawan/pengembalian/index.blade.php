@@ -30,9 +30,9 @@
                 <td>{{ $item->tanggal_kembali ? \Carbon\Carbon::parse($item->tanggal_kembali)->format('d M Y') : '-' }}
                 </td>
                 <td class="text-center">
-                  @if($item->denda > 0)
+                  @if($item->peminjaman->denda)
                     <span class="badge bg-danger px-3 py-2">
-                      Rp {{ number_format($item->denda, 0, ',', '.') }}
+                      Rp {{ number_format($item->peminjaman->denda->total_denda, 0, ',', '.') }}
                     </span>
                   @else
                     <span class="badge bg-success px-3 py-2">Tidak Ada</span>

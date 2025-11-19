@@ -27,7 +27,7 @@
           <div class="col-md-6">
             <p class="mb-1 text-muted">Tanggal Pinjam</p>
             <h6 class="fw-bold">
-              {{ $data->tanggal_pinjam ? \Carbon\Carbon::parse($data->tanggal_pinjam)->format('d M Y') : '-' }}
+              {{ \Carbon\Carbon::parse($data->tanggal_pinjam)->format('d M Y') ?? '-' }}
             </h6>
           </div>
           <div class="col-md-6">
@@ -40,9 +40,9 @@
 
         <div class="mb-3">
           <p class="mb-1 text-muted">Denda</p>
-          @if($data->denda > 0)
+          @if($data->peminjaman->denda)
             <span class="badge bg-danger fs-6 px-3 py-2">
-              Rp {{ number_format($data->denda, 0, ',', '.') }}
+              Rp {{ number_format($data->peminjaman->denda->total_denda, 0, ',', '.') }}
             </span>
           @else
             <span class="badge bg-success fs-6 px-3 py-2">Tidak Ada</span>

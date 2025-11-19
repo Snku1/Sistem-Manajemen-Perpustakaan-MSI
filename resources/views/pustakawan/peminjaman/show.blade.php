@@ -14,12 +14,12 @@
       <div class="card-body">
         <div class="row mb-3">
           <div class="col-md-4 fw-bold text-muted">Nama Peminjam</div>
-          <div class="col-md-8">{{ $data->user->name ?? '-' }}</div>
+          <div class="col-md-8">{{ $data->user->name }}</div>
         </div>
 
         <div class="row mb-3">
           <div class="col-md-4 fw-bold text-muted">Judul Buku</div>
-          <div class="col-md-8">{{ $data->buku->judul ?? '-' }}</div>
+          <div class="col-md-8">{{ $data->buku->judul }}</div>
         </div>
 
         <div class="row mb-3">
@@ -38,9 +38,9 @@
           <div class="col-md-4 fw-bold text-muted">Status</div>
           <div class="col-md-8">
             @if($data->status === 'dipinjam')
-              <span class="badge bg-warning text-dark px-3 py-2">Dipinjam</span>
+              <span class="badge bg-warning text-dark fs-6 px-3 py-2">Dipinjam</span>
             @else
-              <span class="badge bg-success px-3 py-2">Dikembalikan</span>
+              <span class="badge bg-success fs-6 px-3 py-2">Dikembalikan</span>
             @endif
           </div>
         </div>

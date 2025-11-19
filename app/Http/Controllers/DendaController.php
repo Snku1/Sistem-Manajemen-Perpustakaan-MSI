@@ -2,40 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Denda;
-use App\Models\PeminjamanBuku;
-use Carbon\Carbon;
+use App\Models\PengaturanDenda;
 use Illuminate\Http\Request;
 
 class DendaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil semua data denda
-        $denda = Denda::with(['peminjaman.buku', 'peminjaman.user'])->latest()->get();
+        $search = $request->get('search');
 
-        return view('admin.denda.index', compact('denda'));
+        $denda = Denda::with([
+            'peminjaman.buku',
+            'peminjaman.user',
+            'peminjaman.pengembalian', // TAMBAHKAN INI
+            'user'
+        ])
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('peminjaman.user', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                })
+                    ->orWhereHas('peminjaman.buku', function ($q) use ($search) {
+                        $q->where('judul', 'like', '%' . $search . '%');
+                    });
+            })
+            ->latest()
+            ->paginate(10);
+
+        $pengaturan = PengaturanDenda::getAktif();
+
+        return view('admin.denda.index', compact('denda', 'pengaturan'));
     }
 
-    public function hitungDenda()
+    public function pengaturan()
     {
-        // Ambil semua peminjaman yang sudah lewat tanggal kembali
-        $peminjaman = PeminjamanBuku::where('status', 'dipinjam')->get();
+        $pengaturan = PengaturanDenda::getAktif();
+        return view('admin.denda.pengaturan', compact('pengaturan'));
+    }
 
-        foreach ($peminjaman as $pinjam) {
-            $tanggalKembali = Carbon::parse($pinjam->tanggal_kembali);
-            $hariTerlambat = now()->diffInDays($tanggalKembali, false);
+    public function updatePengaturan(Request $request)
+    {
+        $request->validate([
+            'denda_per_hari' => 'required|numeric|min:0',
+            'masa_tenggang' => 'required|integer|min:0',
+            'maksimal_hari_peminjaman' => 'required|integer|min:1|max:30', // VALIDASI BARU
+        ]);
 
-            if ($hariTerlambat > 0) {
-                $totalDenda = $hariTerlambat * 10000;
+        // Nonaktifkan semua pengaturan sebelumnya
+        PengaturanDenda::where('aktif', true)->update(['aktif' => false]);
 
-                Denda::updateOrCreate(
-                    ['peminjaman_id' => $pinjam->id],
-                    ['jumlah_hari' => $hariTerlambat, 'total_denda' => $totalDenda]
-                );
-            }
-        }
+        // Buat pengaturan baru
+        PengaturanDenda::create([
+            'denda_per_hari' => $request->denda_per_hari,
+            'masa_tenggang' => $request->masa_tenggang,
+            'maksimal_hari_peminjaman' => $request->maksimal_hari_peminjaman, // TAMBAH INI
+            'aktif' => true
+        ]);
 
-        return redirect()->route('denda.index')->with('success', 'Denda berhasil dihitung ulang!');
+        return redirect()->route('denda.index')
+            ->with('success', 'Pengaturan denda dan batas waktu berhasil diperbarui.');
     }
 }

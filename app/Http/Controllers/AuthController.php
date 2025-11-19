@@ -28,6 +28,7 @@ class AuthController extends Controller
             $redirectUrl = match ($user->role) {
                 'admin' => route('dashboard'), // route dashboard admin
                 'pustakawan' => route('pustakawan.dashboard'),
+                'kepala_perpus' => route('kepala-perpus.dashboard'),
                 default => url('/'), // fallback jika ada role lain
             };
 

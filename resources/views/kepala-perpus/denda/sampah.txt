@@ -1,0 +1,38 @@
+@extends('layouts.app')
+
+@section('title', 'Statistik Denda')
+
+
+@section('content')
+
+<div class="row">
+
+    <div class="col-md-4">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>Rp {{ number_format($totalDenda, 0, ',', '.') }}</h3>
+                <p>Total Semua Denda</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Pustakawan Dengan Denda Terbanyak</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nama:</strong> {{ $pustakawanTerbanyak->name ?? '-' }}</p>
+                <p><strong>Total Denda:</strong> 
+                    Rp {{ number_format($pustakawanTerbanyak->total_denda ?? 0, 0, ',', '.') }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@endsection

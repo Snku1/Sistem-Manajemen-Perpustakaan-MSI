@@ -25,8 +25,8 @@
                 <th style="width: 5%">No</th>
                 <th style="width: 30%">Buku</th>
                 <th style="width: 25%">Peminjam</th>
-                <th style="width: 20%">Tanggal Pinjam</th>
-                <th style="width: 20%">Aksi</th>
+                <th class="text-center">Tanggal Pinjam</th>
+                <th class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>

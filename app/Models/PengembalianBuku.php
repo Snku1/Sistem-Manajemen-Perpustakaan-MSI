@@ -1,27 +1,51 @@
 <?php
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PengembalianBuku extends Model
 {
-    protected $table = 'pengembalian_buku';
-    protected $fillable = ['peminjaman_id', 'tanggal_kembali', 'denda'];
+    use HasFactory;
 
+    protected $table = 'pengembalian_buku'; // pastikan nama tabel benar
+
+    protected $fillable = [
+        'peminjaman_id',
+        'tanggal_kembali', 
+        'denda'
+    ];
+
+    // Relationship ke peminjaman
     public function peminjaman()
     {
         return $this->belongsTo(PeminjamanBuku::class, 'peminjaman_id');
     }
-    public function buku()
-    {
-        return $this->belongsTo(Buku::class, 'buku_id');
-    }
+
+    // Relationship ke user MELALUI peminjaman
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->hasOneThrough(
+            User::class,
+            PeminjamanBuku::class,
+            'id', // Foreign key pada peminjaman_buku
+            'id', // Foreign key pada users
+            'peminjaman_id', // Local key pada pengembalian_buku
+            'user_id' // Local key pada peminjaman_buku
+        );
     }
-    public function denda()
+
+    // Relationship ke buku MELALUI peminjaman
+    public function buku()
     {
-        return $this->hasOne(Denda::class, 'peminjaman_id');
+        return $this->hasOneThrough(
+            Buku::class,
+            PeminjamanBuku::class,
+            'id', // Foreign key pada peminjaman_buku
+            'id', // Foreign key pada buku
+            'peminjaman_id', // Local key pada pengembalian_buku
+            'buku_id' // Local key pada peminjaman_buku
+        );
     }
 }

@@ -1,0 +1,195 @@
+@extends('layouts.app')
+
+@section('title', 'Statistik Perpustakaan')
+
+@section('content')
+<style>
+    .stat-card {
+        border-radius: 18px;
+        padding: 25px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .stat-icon {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 55px;
+        opacity: .25;
+    }
+
+    .stat-value {
+        font-size: 40px;
+        font-weight: bold;
+        margin-bottom: -5px;
+    }
+
+    .stat-subtitle {
+        font-size: 18px;
+        opacity: .95;
+    }
+</style>
+
+<div class="row">
+
+    <!-- Total Peminjaman -->
+    <div class="col-md-3 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #007bff, #0056d2);">
+            <div class="stat-subtitle">Total Peminjaman</div>
+            <div class="stat-value">{{ $totalPeminjaman }}</div>
+            <i class="fas fa-book-reader stat-icon"></i>
+        </div>
+    </div>
+
+    <!-- Total Pengembalian -->
+    <div class="col-md-3 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #28a745, #1f7f33);">
+            <div class="stat-subtitle">Total Pengembalian</div>
+            <div class="stat-value">{{ $totalPengembalian }}</div>
+            <i class="fas fa-undo stat-icon"></i>
+        </div>
+    </div>
+
+    <!-- Buku Paling Banyak Dipinjam -->
+    <div class="col-md-3 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #ffc107, #d39e00); color: #4a3e00;">
+            <div class="stat-subtitle">Buku Paling Banyak Dipinjam</div>
+            <div class="stat-value" style="font-size: 25px;">
+                {{ $bukuTerbanyak->judul ?? '-' }}
+            </div>
+            <i class="fas fa-chart-line stat-icon"></i>
+        </div>
+    </div>
+
+    <!-- Buku Paling Sedikit Dipinjam -->
+    <div class="col-md-3 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #dc3545, #b21f2d);">
+            <div class="stat-subtitle">Buku Paling Sedikit Dipinjam</div>
+            <div class="stat-value" style="font-size: 23px;">
+                {{ $bukuTersedikit->judul ?? '-' }}
+            </div>
+            <i class="fas fa-chart-pie stat-icon"></i>
+        </div>
+    </div>
+
+        {{-- Grafik Peminjaman per Bulan --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <strong>Grafik Peminjaman Tahun {{ date('Y') }}</strong>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPeminjaman"></canvas>
+                </div>
+            </div>
+        </div>
+
+    <div class="row mt-4">
+        {{-- Tabel 10 Buku Paling Banyak Dipinjam --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <strong>Top 10 Buku Paling Banyak Dipinjam</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-warning text-center">
+                            <tr>
+                                <th>No</th>
+                                <th>Judul</th>
+                                <th>Jumlah Dipinjam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($top10Banyak as $buku)
+                            <tr>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>{{ $buku->judul }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ $buku->peminjaman_count }}</span>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if ($top10Banyak->isEmpty())
+                            <tr>
+                                <td colspan="2" class="text-center">Tidak ada data.</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- Tabel 10 Buku Paling Sedikit Dipinjam --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <strong>Top 10 Buku Paling Sedikit Dipinjam</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-danger text-center">
+                            <tr>
+                                <th>No</th>
+                                <th>Judul</th>
+                                <th>Jumlah Dipinjam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($top10Sedikit as $buku)
+                            <tr>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td>{{ $buku->judul }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ $buku->peminjaman_count }}</span>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if ($top10Sedikit->isEmpty())
+                            <tr>
+                                <td colspan="2" class="text-center">Tidak ada data.</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('chartPeminjaman');
+
+    const bulan = @json(array_keys($chart->toArray()));
+    const total = @json(array_values($chart->toArray()));
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: bulan.map(b => ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][b-1]),
+            datasets: [{
+                label: 'Jumlah Peminjaman',
+                data: total,
+                borderWidth: 3,
+                tension: 0.4
+            }]
+        }
+    });
+</script>
+
+@endsection

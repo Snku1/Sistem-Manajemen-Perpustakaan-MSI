@@ -1,0 +1,36 @@
+@extends('layouts.app')
+
+@section('title', 'Data Buku')
+
+
+@section('content')
+<div class="card">
+    <div class="card-body">
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Judul</th>
+                    <th>Dipinjam</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach($data as $b)
+                <tr>
+                    <td>{{ $b->judul }}</td>
+                    <td>{{ $b->dipinjam_count }}</td>
+                    <td>
+                        <a href="{{ route('buku.show', $b->id) }}" class="btn btn-info btn-sm">
+                            Detail
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+    </div>
+</div>
+@endsection

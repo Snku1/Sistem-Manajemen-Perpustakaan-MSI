@@ -9,7 +9,8 @@ return new class extends Migration
     {
         Schema::create('denda', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('peminjaman_id')->constrained('peminjaman_buku')->onDelete('cascade');
+            $table->foreignId('user_id')->onDelete('cascade');
+            $table->foreignId('peminjaman_id')->onDelete('cascade');
             $table->integer('jumlah_hari')->default(0);
             $table->decimal('total_denda', 10, 2)->default(0);
             $table->timestamps();

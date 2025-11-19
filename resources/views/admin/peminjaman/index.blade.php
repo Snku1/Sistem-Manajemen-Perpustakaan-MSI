@@ -22,8 +22,8 @@
           <table class="table table-striped align-middle mb-0">
             <thead class="table-primary">
               <tr>
-                <th>No</th>
-                <th>Buku</th>
+                <th class="text-center">No</th>
+                <th class="text-center">Buku</th>
                 <th>Peminjam</th>
                 <th>Tanggal Pinjam</th>
                 <th>Tanggal Kembali</th>
@@ -34,8 +34,8 @@
             <tbody>
               @forelse ($peminjaman as $item)
                 <tr>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $item->buku->judul }}</td>
+                  <td class="text-center">{{ $loop->iteration }}</td>
+                  <td class="text-center">{{ $item->buku->judul }}</td>
                   <td>{{ $item->user->name }}</td>
                   <td>{{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d M Y') }}</td>
                   <td>{{ $item->tanggal_kembali ? \Carbon\Carbon::parse($item->tanggal_kembali)->format('d M Y') : '-' }}

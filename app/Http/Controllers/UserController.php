@@ -10,7 +10,11 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::orderBy('name')->paginate(10);
+        // Hanya tampilkan user dengan role admin dan pustakawan
+        $users = User::whereIn('role', ['admin', 'pustakawan'])
+                    ->orderBy('name')
+                    ->paginate(10);
+                    
         return view('users.index', compact('users'));
     }
 
@@ -40,11 +44,21 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        // Prevent editing kepala_perpus
+        if ($user->role === 'kepala_perpus') {
+            abort(403, 'Tidak dapat mengedit user dengan role Kepala Perpustakaan');
+        }
+        
         return view('users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
+        // Prevent updating kepala_perpus
+        if ($user->role === 'kepala_perpus') {
+            abort(403, 'Tidak dapat mengupdate user dengan role Kepala Perpustakaan');
+        }
+
         $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -65,6 +79,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Prevent deleting kepala_perpus
+        if ($user->role === 'kepala_perpus') {
+            abort(403, 'Tidak dapat menghapus user dengan role Kepala Perpustakaan');
+        }
+
         $user->delete();
         return redirect()->route('users.index')->with('success', 'User berhasil dihapus.');
     }

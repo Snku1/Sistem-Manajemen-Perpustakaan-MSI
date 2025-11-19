@@ -33,9 +33,9 @@
       </div>
       <div class="col-md-3 col-sm-6">
         <div class="card shadow-sm text-center p-3">
-          <h5>Backup Data</h5>
-          <p class="text-muted">Cadangkan sistem</p>
-          <a href="{{ route('backup.index') }}" class="btn btn-dark btn-sm">Akses</a>
+          <h5>Jadwal Transaksi</h5>
+          <p class="text-muted">Timeline transaksi</p>
+          <a href="{{ route('jadwal.index') }}" class="btn btn-dark btn-sm">Akses</a>
         </div>
       </div>
     </div>

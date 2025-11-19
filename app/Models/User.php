@@ -22,4 +22,15 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function peminjaman_buku()
+    {
+        return $this->hasMany(PeminjamanBuku::class, 'user_id');
+    }
+
+    public function denda()
+    {
+        return $this->hasMany(\App\Models\Denda::class, 'user_id');
+    }
+
 }
