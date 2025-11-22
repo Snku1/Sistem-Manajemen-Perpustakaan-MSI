@@ -10,9 +10,6 @@
             <a href="{{ route('jadwal.index') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Kalender
             </a>
-            <a href="{{ route('denda.index') }}" class="btn btn-warning">
-                <i class="bi bi-cash-coin me-1"></i> Kelola Denda
-            </a>
             <a href="{{ route('reminder.terlambat') }}" class="btn btn-danger">
                 <i class="bi bi-bell me-1"></i> Reminder Terlambat
             </a>
@@ -25,8 +22,8 @@
         <div class="row">
             <div class="col-md-8">
                 <i class="bi bi-exclamation-octagon me-2"></i>
-                <strong>Aturan Denda Aktif:</strong> 
-                Masa tenggang {{ $pengaturan->masa_tenggang }} hari | 
+                <strong>Aturan Denda Aktif:</strong>
+                Masa tenggang {{ $pengaturan->masa_tenggang }} hari |
                 Denda Rp {{ number_format($pengaturan->denda_per_hari, 0, ',', '.') }}/hari
             </div>
             <div class="col-md-4 text-end">
@@ -40,18 +37,14 @@
 
     {{-- Statistik Keterlambatan --}}
     @php
-        $totalTerlambat = $terlambat->count();
-        $dalamMasaTenggang = $terlambat->filter(function($item) use ($pengaturan) {
-            $tanggalKembali = \Carbon\Carbon::parse($item->tanggal_kembali);
-            $masaTenggangEnd = $tanggalKembali->copy()->addDays($pengaturan->masa_tenggang);
-            return \Carbon\Carbon::today()->lte($masaTenggangEnd);
-        })->count();
-        $sudahKenaDenda = $terlambat->filter(function($item) use ($pengaturan) {
-            $tanggalKembali = \Carbon\Carbon::parse($item->tanggal_kembali);
-            $masaTenggangEnd = $tanggalKembali->copy()->addDays($pengaturan->masa_tenggang);
-            return \Carbon\Carbon::today()->gt($masaTenggangEnd);
-        })->count();
-        $totalEstimasiDenda = $terlambat->sum('estimasi_denda');
+    $totalTerlambat = $terlambat->count();
+    $dalamMasaTenggang = $terlambat->filter(function($item) {
+    return $item->status_detail['status'] === 'masa_tenggang';
+    })->count();
+    $sudahKenaDenda = $terlambat->filter(function($item) {
+    return $item->status_detail['status'] === 'kena_denda';
+    })->count();
+    $totalEstimasiDenda = $terlambat->sum('estimasi_denda');
     @endphp
 
     <div class="row mb-4">
@@ -100,8 +93,10 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-center">No</th>
-                            <th>Buku & Peminjam</th>
+                            <th>Buku</th>
+                            <th class="text-center">Peminjam</th>
                             <th class="text-center">Tanggal</th>
+                            <th class="text-center">Batas Kembali</th>
                             <th class="text-center">Keterlambatan</th>
                             <th class="text-center">Status Denda</th>
                             <th class="text-center">Estimasi Denda</th>
@@ -111,36 +106,35 @@
                     <tbody>
                         @forelse($terlambat as $peminjaman)
                         @php
-                            $tanggalKembali = \Carbon\Carbon::parse($peminjaman->tanggal_kembali);
-                            $today = \Carbon\Carbon::today();
-                            $hariTerlambat = $today->diffInDays($tanggalKembali);
-                            $masaTenggangEnd = $tanggalKembali->copy()->addDays($pengaturan->masa_tenggang);
-                            $isDalamMasaTenggang = $today->lte($masaTenggangEnd);
-                            $hariKenaDenda = $isDalamMasaTenggang ? 0 : $today->diffInDays($masaTenggangEnd);
+                        $tanggalKembali = \Carbon\Carbon::parse($peminjaman->tanggal_kembali);
+                        $today = \Carbon\Carbon::today();
+                        $hariTerlambat = $tanggalKembali->diffInDays($today);
+                        $masaTenggangEnd = $tanggalKembali->copy()->addDays($pengaturan->masa_tenggang);
+                        $isDalamMasaTenggang = $today->lte($masaTenggangEnd);
+                        $hariKenaDenda = $isDalamMasaTenggang ? 0 : $masaTenggangEnd->diffInDays($today);
                         @endphp
                         <tr class="{{ $isDalamMasaTenggang ? 'table-warning' : 'table-danger' }}">
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="flex-shrink-0">
-                                        <i></i>
-                                    </div>
                                     <div class="flex-grow-1">
                                         <strong>{{ $peminjaman->buku->judul }}</strong>
-                                        <br>
-                                        <strong>
-                                            <i></i>{{ $peminjaman->user->name }}
-                                        </strong>
                                     </div>
                                 </div>
                             </td>
+                            <td class="text-center">{{ $peminjaman->user->name }}</td>
                             <td class="text-center">
-                                <div class="small">
-                                    <strong>Pinjam:</strong> {{ \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->format('d M Y') }}<br>
-                                    <strong>Batas:</strong> {{ $tanggalKembali->format('d M Y') }}<br>
-                                    <span class="text-muted">
+                                <div>
+                                    {{ \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->format('d M Y') }}
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div>
+                                    {{ $tanggalKembali->format('d M Y') }}
+                                    <br>
+                                    <small class="text-muted">
                                         {{ $tanggalKembali->diffForHumans() }}
-                                    </span>
+                                    </small>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -148,43 +142,39 @@
                                 <br>
                                 <small class="text-muted">
                                     @if($isDalamMasaTenggang)
-                                        Masa tenggang: {{ $today->diffInDays($masaTenggangEnd) }} hari lagi
+                                    Masa tenggang: {{ $today->diffInDays($masaTenggangEnd) }} hari lagi
                                     @else
-                                        Kena denda: {{ $hariKenaDenda }} hari
+                                    Kena denda: {{ $hariKenaDenda }} hari
                                     @endif
                                 </small>
                             </td>
                             <td class="text-center">
                                 @if($isDalamMasaTenggang)
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-clock me-1"></i> Masa Tenggang
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        sampai {{ $masaTenggangEnd->format('d M') }}
-                                    </small>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-clock me-1"></i> Masa Tenggang
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    sampai {{ $masaTenggangEnd->format('d M') }}
+                                </small>
                                 @else
-                                    <span class="badge bg-danger">
-                                        <i class="bi bi-cash-coin me-1"></i> Kena Denda
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        sejak {{ $masaTenggangEnd->format('d M') }}
-                                    </small>
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-cash-coin me-1"></i> Kena Denda
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    sejak {{ $masaTenggangEnd->format('d M') }}
+                                </small>
                                 @endif
                             </td>
                             <td class="text-center">
                                 @if($peminjaman->estimasi_denda > 0)
-                                    <span class="badge bg-dark px-3 py-2">
-                                        <i class="bi bi-currency-dollar me-1"></i>
-                                        Rp {{ number_format($peminjaman->estimasi_denda, 0, ',', '.') }}
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        @ {{ number_format($pengaturan->denda_per_hari, 0, ',', '.') }}/hari
-                                    </small>
+                                <span class="badge bg-dark px-3 py-2">
+                                    <i></i>
+                                    Rp {{ number_format($peminjaman->estimasi_denda, 0, ',', '.') }}
+                                </span>
                                 @else
-                                    <span class="badge bg-success">Belum Ada</span>
+                                <span class="badge bg-success">Belum Ada</span>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -299,16 +289,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    {{-- Quick Actions --}}
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-        <a href="{{ route('reminder.terlambat') }}" class="btn btn-warning me-md-2">
-            <i class="bi bi-bell me-1"></i> Kirim Reminder Massal
-        </a>
-        <a href="{{ route('denda.index') }}" class="btn btn-danger">
-            <i class="bi bi-cash-coin me-1"></i> Lihat Data Denda
-        </a>
     </div>
 </div>
 @endsection

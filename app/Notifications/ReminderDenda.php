@@ -22,20 +22,7 @@ class ReminderDenda extends Notification
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
-    }
-
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-            ->subject('Reminder Pengembalian Buku')
-            ->line('Hai ' . $notifiable->name . '!')
-            ->line('Ini adalah reminder untuk pengembalian buku:')
-            ->line('Judul: ' . $this->peminjaman->buku->judul)
-            ->line('Tanggal Kembali: ' . $this->peminjaman->tanggal_kembali)
-            ->line('Sisa Waktu: ' . $this->hariTersisa . ' hari')
-            ->action('Lihat Detail', url('/peminjaman'))
-            ->line('Terima kasih!');
+        return ['database'];
     }
 
     public function toArray($notifiable)

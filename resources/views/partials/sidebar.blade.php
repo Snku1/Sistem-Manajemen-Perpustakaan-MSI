@@ -48,7 +48,9 @@
     </a>
     @elseif($role === 'pustakawan')
     <a href="{{ route('pustakawan.dashboard') }}"
-      class="{{ request()->is('pustakawan/dashboard') ? 'active' : '' }}">Dashboard</a>
+      class="{{ request()->is('pustakawan/dashboard') ? 'active' : '' }}">
+      <i class="fas fa-home"></i> <span class="sidebar-text">Dashboard</span>
+    </a>
     <div class="menu-section">Transaksi</div>
     <a href="{{ route('pustakawan.peminjaman.index') }}"
       class="{{ request()->is('pustakawan/peminjaman*') ? 'active' : '' }}">
@@ -64,12 +66,9 @@
       <i class="fas fa-search"></i> <span class="sidebar-text">Cari Buku</span>
     </a>
 
-    <div class="menu-section">OPERASIONAL</div>
+    <div class="menu-section">TIMELINE</div>
     <a href="{{ route('pustakawan.jadwal.index') }}" class="{{ request()->is('jadwal*') ? 'active' : '' }}">
-      <i class="bi bi-calendar-week me-2"></i> Jadwal
-    </a>
-    <a href="{{ route('pustakawan.reminder.index') }}" class="{{ request()->is('reminder*') ? 'active' : '' }}">
-      <i class="bi bi-bell me-2"></i> Reminder
+      <i class="bi bi-calendar-week me-2"></i> Jadwal Peminjaman
     </a>
     @elseif($role === 'kepala_perpus')
     <a href="{{ route('kepala-perpus.dashboard') }}" class="{{ request()->is('kepala/dashboard') ? 'active' : '' }}">

@@ -6,6 +6,24 @@
       <i class="fas fa-undo text-primary"></i> Data Pengembalian Buku
     </h3>
     <p class="text-muted">Anda hanya dapat melihat data, tidak dapat mengubah.</p>
+
+    <!-- Search Bar -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <form method="GET" action="{{ route('pustakawan.pengembalian.index') }}" class="row g-2">
+          <div class="col-12 col-md-10">
+            <input type="search" name="search" class="form-control" placeholder="Cari judul buku atau nama peminjam..."
+              value="{{ request('search') }}">
+          </div>
+          <div class="col-12 col-md-2 d-grid">
+            <button class="btn btn-primary">
+              <i class="fas fa-search"></i> Cari
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div class="card-body p-0">
       <div class="table-responsive shadow-sm rounded-3">
         <table class="table table-hover table-bordered mb-0 align-middle">

@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\ReminderDenda;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\ReminderEmail;
 use App\Mail\PeminjamanBaruEmail;
 use App\Mail\PengingatPengembalianEmail;
 use App\Mail\PeringatanKeterlambatanEmail;
@@ -44,7 +45,7 @@ class ReminderController extends Controller
         }
 
         // Sudah lewat tanggal kembali
-        $hariTerlambat = $tanggalKembali->diffInDays($today);
+        $hariTerlambat = $today->diffInDays($tanggalKembali);
         $masaTenggangEnd = $tanggalKembali->copy()->addDays($pengaturan->masa_tenggang);
 
         if ($today->lte($masaTenggangEnd)) {
@@ -57,7 +58,7 @@ class ReminderController extends Controller
             ];
         } else {
             // Sudah kena denda
-            $hariKenaDenda = $masaTenggangEnd->diffInDays($today);
+            $hariKenaDenda = $today->diffInDays($masaTenggangEnd);
             $totalDenda = $hariKenaDenda * $pengaturan->denda_per_hari;
 
             return [
@@ -339,5 +340,17 @@ class ReminderController extends Controller
                 'message' => 'Gagal mengirim reminder otomatis: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function pustakawanIndex()
+    {
+        $reminders = PeminjamanBuku::with(['buku', 'user'])
+            ->where('status', 'dipinjam')
+            ->where('tanggal_kembali', '>=', today())
+            ->where('tanggal_kembali', '<=', now()->addDays(3))
+            ->orderBy('tanggal_kembali')
+            ->get();
+
+        return view('pustakawan.reminder.index', compact('reminders'));
     }
 }

@@ -26,8 +26,8 @@
             <div class="col-md-8">
                 <i class="bi bi-gear me-2"></i>
                 <strong>Pengaturan Aktif:</strong>
-                Maksimal {{ $pengaturan->maksimal_hari_peminjaman }} hari | 
-                Tenggang {{ $pengaturan->masa_tenggang }} hari | 
+                Maksimal {{ $pengaturan->maksimal_hari_peminjaman }} hari |
+                Tenggang {{ $pengaturan->masa_tenggang }} hari |
                 Denda Rp {{ number_format($pengaturan->denda_per_hari, 0, ',', '.') }}/hari
             </div>
             <div class="col-md-4 text-end">
@@ -61,7 +61,7 @@
             <div class="card border-0 bg-warning text-dark shadow-sm">
                 <div class="card-body text-center">
                     <h6>Masa Tenggang</h6>
-                    <h3>{{ $terlambat }}</h3>
+                    <h3>{{ $terlambat - $kenaDenda }}</h3>
                 </div>
             </div>
         </div>
@@ -69,17 +69,7 @@
             <div class="card border-0 bg-danger text-white shadow-sm">
                 <div class="card-body text-center">
                     <h6>Kena Denda</h6>
-                    <h3>
-                        @php
-                            $kenaDenda = 0;
-                            foreach($events as $event) {
-                                if ($event['extendedProps']['estimasi_denda'] > 0) {
-                                    $kenaDenda++;
-                                }
-                            }
-                        @endphp
-                        {{ $kenaDenda }}
-                    </h3>
+                    <h3>{{ $kenaDenda }}</h3>
                 </div>
             </div>
         </div>
@@ -100,11 +90,11 @@
                 <small>Aktif (Dalam Waktu)</small>
             </div>
             <div class="d-flex align-items-center">
-                <div class="legend-color bg-warning me-2" style="width: 20px; height: 20px; border-radius: 3px;"></div>
+                <div class="legend-color bg-orange me-2" style="width: 20px; height: 20px; border-radius: 3px; background-color: #fd7e14;"></div>
                 <small>Batas Kembali (Hari Ini)</small>
             </div>
             <div class="d-flex align-items-center">
-                <div class="legend-color bg-orange me-2" style="width: 20px; height: 20px; border-radius: 3px; background-color: #fd7e14;"></div>
+                <div class="legend-color bg-warning me-2" style="width: 20px; height: 20px; border-radius: 3px;"></div>
                 <small>Masa Tenggang ({{ $pengaturan->masa_tenggang ?? 3 }} hari)</small>
             </div>
             <div class="d-flex align-items-center">
@@ -120,34 +110,37 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 
 <style>
-.legend-color {
-    border-radius: 3px;
-}
-#calendar {
-    min-height: 600px;
-}
-.fc-event {
-    cursor: pointer;
-    border: none;
-    padding: 2px 4px;
-    font-weight: 500;
-}
-.fc-event-title {
-    font-weight: 600;
-}
+    .legend-color {
+        border-radius: 3px;
+    }
+
+    #calendar {
+        min-height: 600px;
+    }
+
+    .fc-event {
+        cursor: pointer;
+        border: none;
+        padding: 2px 4px;
+        font-weight: 500;
+    }
+
+    .fc-event-title {
+        font-weight: 600;
+    }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        events: @json($events),
-        eventClick: function(info) {
-            var event = info.event;
-            var props = event.extendedProps;
-            
-            var detail = `
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: @json($events),
+            eventClick: function(info) {
+                var event = info.event;
+                var props = event.extendedProps;
+
+                var detail = `
                 <strong>Buku:</strong> ${props.buku}<br>
                 <strong>Peminjam:</strong> ${props.peminjam}<br>
                 <strong>Tanggal Pinjam:</strong> ${props.tanggal_pinjam}<br>
@@ -156,50 +149,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 <strong>Status:</strong> ${props.status_kalender}<br>
                 <strong>Masa Tenggang:</strong> ${props.masa_tenggang} hari<br>
             `;
-            
-            if (props.hari_terlambat > 0) {
-                detail += `<strong>Keterlambatan:</strong> ${props.hari_terlambat} hari<br>`;
+
+                if (props.hari_terlambat > 0) {
+                    detail += `<strong>Keterlambatan:</strong> ${props.hari_terlambat} hari<br>`;
+                }
+
+                if (props.estimasi_denda > 0) {
+                    detail += `<strong class="text-danger">Estimasi Denda:</strong> Rp ${props.estimasi_denda.toLocaleString('id-ID')}<br>`;
+                } else if (props.status_kalender === 'Masa Tenggang') {
+                    detail += `<strong class="text-warning">Status:</strong> Dalam masa tenggang (belum kena denda)<br>`;
+                }
+
+                // Using SweetAlert for better dialog
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Detail Peminjaman',
+                        html: detail,
+                        icon: props.estimasi_denda > 0 ? 'error' : props.status_kalender === 'Masa Tenggang' ? 'warning' : 'info',
+                        confirmButtonText: 'Tutup'
+                    });
+                } else {
+                    // Fallback to basic alert
+                    alert('Detail Peminjaman:\n\n' + detail.replace(/<br>/g, '\n').replace(/<[^>]*>/g, ''));
+                }
+            },
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: 'Hari Ini',
+                month: 'Bulan',
+                week: 'Minggu',
+                day: 'Hari'
+            },
+            eventDisplay: 'block',
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: false
             }
-            
-            if (props.estimasi_denda > 0) {
-                detail += `<strong class="text-danger">Estimasi Denda:</strong> Rp ${props.estimasi_denda.toLocaleString('id-ID')}<br>`;
-            } else if (props.status_kalender === 'Masa Tenggang') {
-                detail += `<strong class="text-warning">Status:</strong> Dalam masa tenggang (belum kena denda)<br>`;
-            }
-            
-            // Using SweetAlert for better dialog
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Detail Peminjaman',
-                    html: detail,
-                    icon: props.estimasi_denda > 0 ? 'error' : 
-                          props.status_kalender === 'Masa Tenggang' ? 'warning' : 'info',
-                    confirmButtonText: 'Tutup'
-                });
-            } else {
-                // Fallback to basic alert
-                alert('Detail Peminjaman:\n\n' + detail.replace(/<br>/g, '\n').replace(/<[^>]*>/g, ''));
-            }
-        },
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        buttonText: {
-            today: 'Hari Ini',
-            month: 'Bulan',
-            week: 'Minggu',
-            day: 'Hari'
-        },
-        eventDisplay: 'block',
-        eventTimeFormat: {
-            hour: '2-digit',
-            minute: '2-digit',
-            meridiem: false
-        }
+        });
+        calendar.render();
     });
-    calendar.render();
-});
 </script>
 @endsection

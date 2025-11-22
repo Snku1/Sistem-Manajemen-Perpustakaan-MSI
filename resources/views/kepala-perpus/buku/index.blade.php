@@ -68,14 +68,14 @@
 
               {{-- DIPINJAM SEKARANG --}}
               <td>
-                <span class="badge bg-warning text-dark">
+                <span class="badge bg-primary">
                   {{ $item->dipinjam ?? 0 }}
                 </span>
               </td>
 
               {{-- DIKEMBALIKAN SEKARANG --}}
               <td>
-                <span class="badge bg-info text-dark">
+                <span class="badge bg-warning text-dark">
                   {{ $item->dikembalikan ?? 0 }}
                 </span>
               </td>

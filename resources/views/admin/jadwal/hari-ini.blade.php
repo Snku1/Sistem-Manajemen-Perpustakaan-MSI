@@ -20,16 +20,27 @@
     @if($pengaturan)
     <div class="alert alert-info mb-4">
         <i class="bi bi-info-circle me-2"></i>
-        <strong>Aturan Denda:</strong> Masa tenggang {{ $pengaturan->masa_tenggang }} hari | 
+        <strong>Aturan Denda:</strong> Masa tenggang {{ $pengaturan->masa_tenggang }} hari |
         Denda Rp {{ number_format($pengaturan->denda_per_hari, 0, ',', '.') }}/hari setelah masa tenggang
     </div>
     @endif
 
     {{-- Statistik --}}
     @php
-        $pinjamHariIni = $peminjamanHariIni->where('tanggal_pinjam', \Carbon\Carbon::today())->count();
-        $kembaliHariIni = $peminjamanHariIni->where('tanggal_kembali', \Carbon\Carbon::today())->count();
-        $perluReminder = $peminjamanHariIni->where('tanggal_kembali', \Carbon\Carbon::today())->count();
+    $today = \Carbon\Carbon::today();
+    $pinjamHariIni = $peminjamanHariIni->filter(function($item) use ($today) {
+    return \Carbon\Carbon::parse($item->tanggal_pinjam)->eq($today);
+    })->count();
+
+    $kembaliHariIni = $peminjamanHariIni->filter(function($item) use ($today) {
+    return \Carbon\Carbon::parse($item->tanggal_kembali)->eq($today);
+    })->count();
+
+    $perluReminder = $peminjamanHariIni->filter(function($item) use ($today) {
+    $tanggalKembali = \Carbon\Carbon::parse($item->tanggal_kembali);
+    return $tanggalKembali->eq($today) ||
+    ($tanggalKembali->lt($today) && $item->status_detail['status'] === 'masa_tenggang');
+    })->count();
     @endphp
 
     <div class="row mb-4">
@@ -38,6 +49,13 @@
                 <div class="card-body text-center">
                     <h6>Pinjam Hari Ini</h6>
                     <h3>{{ $pinjamHariIni }}</h3>
+                    <small class="opacity-75">
+                        @if($pinjamHariIni > 0)
+                        {{ $pinjamHariIni }} peminjaman baru
+                        @else
+                        Tidak ada peminjaman baru
+                        @endif
+                    </small>
                 </div>
             </div>
         </div>
@@ -46,6 +64,13 @@
                 <div class="card-body text-center">
                     <h6>Batas Kembali</h6>
                     <h3>{{ $kembaliHariIni }}</h3>
+                    <small class="opacity-75">
+                        @if($kembaliHariIni > 0)
+                        {{ $kembaliHariIni }} harus dikembalikan
+                        @else
+                        Tidak ada yang harus dikembalikan
+                        @endif
+                    </small>
                 </div>
             </div>
         </div>
@@ -54,6 +79,13 @@
                 <div class="card-body text-center">
                     <h6>Perlu Reminder</h6>
                     <h3>{{ $perluReminder }}</h3>
+                    <small class="opacity-75">
+                        @if($perluReminder > 0)
+                        {{ $perluReminder }} perlu diingatkan
+                        @else
+                        Semua terkendali
+                        @endif
+                    </small>
                 </div>
             </div>
         </div>
@@ -82,10 +114,10 @@
                     <tbody>
                         @forelse($peminjamanHariIni as $peminjaman)
                         @php
-                            $tanggalKembali = \Carbon\Carbon::parse($peminjaman->tanggal_kembali);
-                            $today = \Carbon\Carbon::today();
-                            $isBatasKembali = $tanggalKembali->eq($today);
-                            $isPinjamBaru = \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->eq($today);
+                        $tanggalKembali = \Carbon\Carbon::parse($peminjaman->tanggal_kembali);
+                        $today = \Carbon\Carbon::today();
+                        $isBatasKembali = $tanggalKembali->eq($today);
+                        $isPinjamBaru = \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->eq($today);
                         @endphp
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
@@ -96,41 +128,38 @@
                             <td class="text-center">
                                 {{ \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->format('d M Y') }}
                                 @if($isPinjamBaru)
-                                    <br><span class="badge bg-primary">Baru</span>
+                                <br><span class="badge bg-primary">Baru</span>
                                 @endif
                             </td>
                             <td class="text-center">
                                 {{ $tanggalKembali->format('d M Y') }}
                                 @if($isBatasKembali)
-                                    <br><span class="badge bg-warning text-dark">Batas Hari Ini</span>
+                                <br><span class="badge bg-warning text-dark">Batas Hari Ini</span>
                                 @endif
                             </td>
                             <td class="text-center">
                                 @php
-                                    $durasi = \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->diffInDays($tanggalKembali);
+                                $durasi = \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->diffInDays($tanggalKembali);
                                 @endphp
                                 <span class="badge bg-info">{{ $durasi }} hari</span>
                             </td>
                             <td class="text-center">
                                 @if($peminjaman->estimasi_denda > 0)
-                                    <span class="badge bg-danger">
-                                        Rp {{ number_format($peminjaman->estimasi_denda, 0, ',', '.') }}
-                                    </span>
+                                <span class="badge bg-danger">
+                                    Rp {{ number_format($peminjaman->estimasi_denda, 0, ',', '.') }}
+                                </span>
                                 @elseif($isBatasKembali)
-                                    <span class="badge bg-warning text-dark">Batas Kembali</span>
+                                <span class="badge bg-warning text-dark">Batas Kembali</span>
                                 @else
-                                    <span class="badge bg-success">Aman</span>
+                                <span class="badge bg-success">Aman</span>
                                 @endif
                             </td>
                             <td class="text-center">
                                 @if($isBatasKembali)
-                                    <a href="{{ route('reminder.index') }}" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-bell"></i> Remind
-                                    </a>
-                                @endif
-                                <a href="{{ route('peminjaman.show', $peminjaman->id) }}" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i>
+                                <a href="{{ route('reminder.index') }}" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-bell"></i> Remind
                                 </a>
+                                @endif
                             </td>
                         </tr>
                         @empty

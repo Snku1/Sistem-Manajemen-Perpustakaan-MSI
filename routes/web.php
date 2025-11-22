@@ -56,8 +56,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // FITUR BARU: Reminder & Notifikasi
     Route::get('/reminder', [ReminderController::class, 'index'])->name('reminder.index');
     Route::get('/reminder/terlambat', [ReminderController::class, 'getTerlambat'])->name('reminder.terlambat');
+    // Tambahkan routes baru
+    Route::post('/reminder/massal', [ReminderController::class, 'kirimReminderMassal'])->name('reminder.massal');
     Route::post('/reminder/{peminjamanId}/kirim', [ReminderController::class, 'kirimReminder'])->name('reminder.kirim');
     Route::post('/reminder/otomatis', [ReminderController::class, 'otomatisReminder'])->name('reminder.otomatis');
+    Route::post('/reminder/{peminjamanId}/kirim-spesifik', [ReminderController::class, 'kirimEmailSpesifik'])->name('reminder.kirim-spesifik');
+
+    // Email peminjaman baru (bisa dipanggil otomatis)
+    Route::post('/reminder/{peminjamanId}/peminjaman-baru', [ReminderController::class, 'kirimEmailPeminjamanBaru'])->name('reminder.peminjaman-baru');
 });
 
 
@@ -74,11 +80,36 @@ Route::middleware(['auth', 'role:pustakawan'])->prefix('pustakawan')->name('pust
     Route::get('/jadwal', [JadwalController::class, 'pustakawanindex'])->name('jadwal.index');
     Route::get('/jadwal/hari-ini', [JadwalController::class, 'pustakawanHariIni'])->name('jadwal.hari-ini');
     Route::get('/jadwal/akan-datang', [JadwalController::class, 'pustakawanAkanDatang'])->name('jadwal.akan-datang');
-
-    // Reminder untuk pustakawan (hanya lihat, tidak bisa kirim)
-    Route::get('/reminder', [ReminderController::class, 'pustakawanIndex'])->name('reminder.index');
+    Route::get('/jadwal/terlambat', [JadwalController::class, 'pustakawanTerlambat'])->name('jadwal.terlambat');
 });
 
+// routes/web.php
+Route::get('/test-all-emails', function() {
+    try {
+        $peminjaman = \App\Models\PeminjamanBuku::with(['user', 'buku'])->first();
+        
+        if (!$peminjaman) {
+            return "Tidak ada data peminjaman untuk testing";
+        }
+
+        // Test email peminjaman baru
+        \Illuminate\Support\Facades\Mail::to('misiitu1@gmail.com')
+            ->send(new \App\Mail\PeminjamanBaruEmail($peminjaman));
+
+        // Test email pengingat
+        \Illuminate\Support\Facades\Mail::to('misiitu1@gmail.com')
+            ->send(new \App\Mail\PengingatPengembalianEmail($peminjaman, 2));
+
+        // Test email keterlambatan
+        \Illuminate\Support\Facades\Mail::to('misiitu1@gmail.com')
+            ->send(new \App\Mail\PeringatanKeterlambatanEmail($peminjaman, 5));
+            
+        return "✅ Ketiga jenis email berhasil dikirim! Cek inbox Anda.";
+        
+    } catch (\Exception $e) {
+        return "❌ Error: " . $e->getMessage();
+    }
+});
 
 // ROUTE KEPALA PERPUSTAKAAN
 Route::middleware(['auth', 'role:kepala_perpus'])->prefix('kepala-perpus')->name('kepala-perpus.')->group(function () {

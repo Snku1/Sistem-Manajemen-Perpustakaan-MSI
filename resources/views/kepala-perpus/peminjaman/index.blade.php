@@ -26,7 +26,7 @@
     <div class="card-body">
       <form method="GET" action="{{ route('kepala-perpus.peminjaman.index', request()->query()) }}" class="row g-2">
         <div class="col-12 col-md-10">
-          <input type="text" name="search" class="form-control" placeholder="Cari peminjaman buku..."
+          <input type="search" name="search" class="form-control" placeholder="Cari peminjaman buku..."
             value="{{ request('search') }}">
         </div>
         <div class="col-12 col-md-2 d-grid">

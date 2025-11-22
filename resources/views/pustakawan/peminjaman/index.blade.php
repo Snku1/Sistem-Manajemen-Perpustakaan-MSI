@@ -12,7 +12,7 @@
       <div class="card-body">
         <form method="GET" action="{{ route('pustakawan.peminjaman.index') }}" class="row g-2">
           <div class="col-12 col-md-10">
-            <input type="text" name="search" class="form-control" placeholder="Cari judul buku..."
+            <input type="search" name="search" class="form-control" placeholder="Cari judul buku atau nama peminjam..."
               value="{{ request('search') }}">
           </div>
           <div class="col-12 col-md-2 d-grid">

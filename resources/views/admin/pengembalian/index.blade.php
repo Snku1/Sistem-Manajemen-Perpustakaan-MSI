@@ -22,7 +22,7 @@
           <table class="table table-hover align-middle mb-0">
             <thead class="table-primary">
               <tr>
-                <th style="width: 5%">No</th>
+                <th class="text-center" style="width: 5%">No</th>
                 <th style="width: 30%">Buku</th>
                 <th style="width: 25%">Peminjam</th>
                 <th class="text-center">Tanggal Pinjam</th>

@@ -11,7 +11,7 @@
       <div class="card-body">
         <form method="GET" action="{{ route('pustakawan.buku.index') }}">
           <div class="input-group">
-            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-lg"
+            <input type="search" name="search" value="{{ request('search') }}" class="form-control form-control-lg"
               placeholder="Cari judul, pengarang, penerbit, kategori atau rak...">
             <button class="btn btn-primary btn-lg" type="submit">
               <i class="fas fa-search"></i> Cari
@@ -49,7 +49,7 @@
                   <span class="badge bg-primary">{{ $buku->kategori->nama ?? '-' }}</span>
                 </td>
                 <td>
-                  <span class="badge bg-info text-dark">{{ $buku->rak->nama ?? '-' }}</span>
+                  <span class="badge bg-info">{{ $buku->rak->nama ?? '-' }}</span>
                 </td>
                 <td class="text-center">
                   @if($buku->stok > 0)

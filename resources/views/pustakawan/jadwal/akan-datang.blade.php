@@ -10,16 +10,22 @@
             <a href="{{ route('pustakawan.jadwal.index') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left me-1"></i> Kembali ke Kalender
             </a>
-            <a href="{{ route('pustakawan.reminder.index') }}" class="btn btn-info">
-                <i class="bi bi-bell me-1"></i> Lihat Reminder
-            </a>
         </div>
     </div>
+
+    {{-- Info Pengaturan --}}
+    @if($pengaturan)
+    <div class="alert alert-warning mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Pengingat:</strong> Peminjaman akan masuk masa tenggang {{ $pengaturan->masa_tenggang }} hari setelah tanggal kembali. 
+        Denda mulai berlaku setelah masa tenggang.
+    </div>
+    @endif
 
     {{-- Tabel Peminjaman Akan Datang --}}
     <div class="card shadow-sm">
         <div class="card-header bg-warning text-dark">
-            <h6 class="mb-0"><i class="bi bi-clock me-2"></i> Daftar Peminjaman Akan Kembali</h6>
+            <h6 class="mb-0"><i class="bi bi-clock me-2"></i> Daftar Peminjaman Akan Kembali (Total: {{ $peminjamanAkanDatang->count() }})</h6>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -29,18 +35,15 @@
                             <th class="text-center">No</th>
                             <th>Buku</th>
                             <th>Peminjam</th>
-                            <th class="text-center">Tanggal Pinjam</th>
                             <th class="text-center">Tanggal Kembali</th>
                             <th class="text-center">Sisa Waktu</th>
-                            <th class="text-center">Persiapan</th>
+                            <th class="text-center">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($peminjamanAkanDatang as $peminjaman)
                         @php
-                            $hariTersisa = \Carbon\Carbon::parse($peminjaman->tanggal_kembali)->diffInDays(now());
-                            $isBesok = $hariTersisa == 1;
-                            $isHariIni = $hariTersisa == 0;
+                            $tanggalKembali = \Carbon\Carbon::parse($peminjaman->tanggal_kembali);
                         @endphp
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
@@ -49,79 +52,40 @@
                             </td>
                             <td>{{ $peminjaman->user->name }}</td>
                             <td class="text-center">
-                                {{ \Carbon\Carbon::parse($peminjaman->tanggal_pinjam)->format('d M Y') }}
+                                <span class="fw-semibold">{{ $tanggalKembali->format('d M Y') }}</span>
+                                <br>
+                                <small class="text-muted">
+                                    {{ $tanggalKembali->diffForHumans() }}
+                                </small>
                             </td>
                             <td class="text-center">
-                                {{ \Carbon\Carbon::parse($peminjaman->tanggal_kembali)->format('d M Y') }}
-                            </td>
-                            <td class="text-center">
-                                @if($isHariIni)
+                                @if($peminjaman->hari_tersisa == 0)
                                     <span class="badge bg-danger">HARI INI!</span>
-                                @elseif($isBesok)
-                                    <span class="badge bg-warning text-dark">BESOK</span>
+                                @elseif($peminjaman->hari_tersisa == 1)
+                                    <span class="badge bg-warning">BESOK</span>
+                                @elseif($peminjaman->hari_tersisa <= 3)
+                                    <span class="badge bg-info">{{ $peminjaman->hari_tersisa }} hari lagi</span>
                                 @else
-                                    <span class="badge bg-info">{{ $hariTersisa }} hari lagi</span>
+                                    <span class="badge bg-secondary">{{ $peminjaman->hari_tersisa }} hari lagi</span>
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if($isHariIni)
-                                    <small class="text-danger">Siapkan penerimaan</small>
-                                @elseif($isBesok)
-                                    <small class="text-warning">Persiapan besok</small>
-                                @else
-                                    <small class="text-muted">Monitor</small>
-                                @endif
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Aktif
+                                </span>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="6" class="text-center py-4 text-muted">
                                 <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
                                 <p class="mt-2">Tidak ada peminjaman yang akan datang</p>
+                                <small class="text-success">Semua peminjaman sudah dikembalikan atau belum ada jadwal!</small>
                             </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-
-    {{-- Checklist Persiapan --}}
-    <div class="card border-success mt-3">
-        <div class="card-header bg-success text-white">
-            <h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i> Checklist Persiapan</h6>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="check1">
-                        <label class="form-check-label" for="check1">
-                            Siapkan area penerimaan buku
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="check2">
-                        <label class="form-check-label" for="check2">
-                            Periksa kalkulator denda
-                        </label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="check3">
-                        <label class="form-check-label" for="check3">
-                            Siapkan form pengembalian
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="check4">
-                        <label class="form-check-label" for="check4">
-                            Update daftar stok buku
-                        </label>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

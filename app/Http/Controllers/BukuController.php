@@ -26,7 +26,7 @@ class BukuController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', '%' . $search . '%')
-                  ->orWhere('pengarang', 'like', '%' . $search . '%');
+                    ->orWhere('pengarang', 'like', '%' . $search . '%');
             });
         }
 
@@ -48,6 +48,9 @@ class BukuController extends Controller
         $request->validate([
             'judul' => 'required',
             'pengarang' => 'required',
+            'penerbit' => 'nullable|string',
+            'tahun_terbit' => 'nullable|integer',
+            'isbn' => 'nullable|integer',
             'kategori_id' => 'required|exists:kategori_buku,id',
             'rak_id' => 'required|exists:rak_buku,id',
             'stok' => 'required|integer|min:0',
@@ -99,7 +102,6 @@ class BukuController extends Controller
         try {
             // 2. Memulai proses impor, memanggil kelas BukuImport
             Excel::import(new BukuImport, $request->file('file'));
-
         } catch (ValidationException $e) {
             // 3. Menangkap jika ada error validasi di dalam file Excel
             $failures = $e->failures();
@@ -108,7 +110,7 @@ class BukuController extends Controller
                 // Mengumpulkan semua pesan error per baris
                 $errorMessages[] = 'Baris ' . $failure->row() . ': ' . implode(', ', $failure->errors());
             }
-            
+
             // Kembali ke halaman sebelumnya dengan pesan error yang jelas
             return redirect()->route('buku.index')->with('import_error', 'Gagal mengimpor data. Kesalahan:<br>' . implode('<br>', $errorMessages));
         }

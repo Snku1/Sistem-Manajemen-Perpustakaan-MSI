@@ -87,6 +87,12 @@ class PeminjamanBukuController extends Controller
         $message = "Peminjaman berhasil ditambahkan. ";
         $message .= "Durasi pinjam: {$selisihHari} hari (maksimal: {$maksimalHari} hari).";
 
+        // Setelah peminjaman berhasil dibuat, kirim email konfirmasi
+        if ($peminjaman) {
+            // Kirim email konfirmasi peminjaman baru
+            (new ReminderController)->kirimEmailPeminjamanBaru($peminjaman->id);
+        }
+
         return redirect()->route('peminjaman.index')->with('success', $message);
     }
 
