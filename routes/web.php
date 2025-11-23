@@ -135,9 +135,9 @@ Route::middleware(['auth', 'role:kepala_perpus'])->prefix('kepala-perpus')->name
     // Transaksi
     // Peminjaman - hanya tampilan data (index + detail)
     Route::get('/peminjaman', [App\Http\Controllers\KepalaPerpus\PeminjamanController::class, 'index'])->name('peminjaman.index');
-    Route::get('/peminjaman/{id}', [App\Http\Controllers\KepalaPerpus\PeminjamanController::class, 'show'])->name('peminjaman.show');
     Route::get('/peminjaman/export-pdf', [App\Http\Controllers\KepalaPerpus\PeminjamanController::class, 'exportPDF'])->name('peminjaman.export.pdf');
     Route::get('/peminjaman/export-excel', [App\Http\Controllers\KepalaPerpus\PeminjamanController::class, 'exportExcel'])->name('peminjaman.export.excel');
+    Route::get('/peminjaman/{id}', [App\Http\Controllers\KepalaPerpus\PeminjamanController::class, 'show'])->name('peminjaman.show');
 
     // Pengembalian - hanya tampilan data (index + detail)
     Route::get('/pengembalian', [App\Http\Controllers\KepalaPerpus\PengembalianController::class, 'index'])->name('pengembalian.index');

@@ -14,15 +14,15 @@ class PeminjamanController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        
+
         $peminjaman = PeminjamanBuku::with(['buku', 'user'])
-            ->when($search, function($query) use ($search) {
-                $query->whereHas('user', function($q) use ($search) {
-                    $q->where('name', 'like', '%'.$search.'%');
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
                 })
-                ->orWhereHas('buku', function($q) use ($search) {
-                    $q->where('judul', 'like', '%'.$search.'%');
-                });
+                    ->orWhereHas('buku', function ($q) use ($search) {
+                        $q->where('judul', 'like', '%' . $search . '%');
+                    });
             })
             ->latest()
             ->paginate(10);
@@ -41,15 +41,15 @@ class PeminjamanController extends Controller
     public function exportPDF(Request $request)
     {
         $search = $request->get('search');
-        
+
         $peminjaman = PeminjamanBuku::with(['buku', 'user'])
-            ->when($search, function($query) use ($search) {
-                $query->whereHas('user', function($q) use ($search) {
-                    $q->where('name', 'like', '%'.$search.'%');
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
                 })
-                ->orWhereHas('buku', function($q) use ($search) {
-                    $q->where('judul', 'like', '%'.$search.'%');
-                });
+                    ->orWhereHas('buku', function ($q) use ($search) {
+                        $q->where('judul', 'like', '%' . $search . '%');
+                    });
             })
             ->latest()
             ->get();
@@ -61,7 +61,7 @@ class PeminjamanController extends Controller
     public function exportExcel(Request $request)
     {
         $search = $request->get('search');
-        
+
         return Excel::download(new PeminjamanExport($search), 'data-peminjaman-' . date('Y-m-d') . '.xlsx');
     }
 }
